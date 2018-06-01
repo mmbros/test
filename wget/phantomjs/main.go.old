@@ -1,0 +1,62 @@
+package main
+
+import (
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/benbjohnson/phantomjs"
+)
+
+// QXcbConnection: Could not connect to display
+// https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=817277
+
+func abort(e error) {
+	fmt.Println(e)
+	os.Exit(1)
+}
+
+func main() {
+	// Start the process once.
+	p := phantomjs.DefaultProcess
+	if err := p.Open(); err != nil {
+		abort(err)
+	}
+	defer p.Close()
+
+	// Do other stuff in your program.
+	//doStuff()
+
+	// Create a web page.
+	// IMPORTANT: Always make sure you close your pages!
+	page, err := p.CreateWebPage()
+	if err != nil {
+		abort(err)
+	}
+	defer page.Close()
+
+	settings := phantomjs.WebPageSettings{
+		JavascriptEnabled: true,
+	}
+	if err := page.SetSettings(settings); err != nil {
+		abort(err)
+	}
+
+	// Open a URL.
+	// theUrl := "https://google.com"
+	theURL := "http://arenavision.in"
+	log.Println("A")
+	if err := page.Open(theURL); err != nil {
+		abort(err)
+	}
+	log.Println("B")
+	res, err := page.EvaluateJavaScript("window.setTimeout(function(){return 1},3500)")
+	if err != nil {
+		abort(err)
+	}
+	fmt.Println(res)
+	log.Println("C")
+	fmt.Println(page.Content())
+	log.Println("D")
+
+}
