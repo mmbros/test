@@ -18,6 +18,31 @@ import (
 	"image/png"
 )
 
+// AverageImageColor is  ...
+//  https://jimsaunders.net/2015/05/22/manipulating-colors-in-go.html
+func AverageImageColor(i image.Image) color.Color {
+	var r, g, b uint32
+
+	bounds := i.Bounds()
+
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			pr, pg, pb, _ := i.At(x, y).RGBA()
+			r += pr
+			g += pg
+			b += pb
+		}
+	}
+
+	d := uint32(bounds.Dy() * bounds.Dx() * 0x101)
+
+	r /= d
+	g /= d
+	b /= d
+
+	return color.NRGBA{uint8(r), uint8(g), uint8(b), 255}
+}
+
 type colorSamplerFunc func(m image.Image, x, y int) color.Color
 
 func colorAt(m image.Image, x, y int) color.Color {
@@ -83,7 +108,7 @@ func downsize(m image.Image, sampler colorSamplerFunc, pixelx, pixely int) (imag
 
 			c := sampler(m, int(rx+0.5), int(ry+0.5))
 			g.Set(x, y, c)
-			fmt.Printf("[%d,%d] = %v\n", x, y, c)
+			//	fmt.Printf("[%d,%d] = %v\n", x, y, c)
 
 			rx += sx
 		}
@@ -124,11 +149,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	mm, err := downsize(m, colorAt, 32, 32)
+	mm, err := downsize(m, colorAt, 50, 50)
 	if err != nil {
 		log.Fatal(err)
 	}
-	mm2, err := upsize(mm, colorAt, 10, 10)
+	mm2, err := upsize(mm, colorAt, 8, 8)
 	if err != nil {
 		log.Fatal(err)
 	}
