@@ -6,6 +6,7 @@ import (
 	"image"
 	"log"
 	"os"
+	"sort"
 
 	// Package image/jpeg is not used explicitly in the code below,
 	// but is imported for its initialization side-effect, which allows
@@ -16,7 +17,13 @@ import (
 	"image/color"
 	_ "image/jpeg"
 	"image/png"
+
+	"github.com/Nykakin/quantize"
+	"github.com/RobCherry/vibrant"
+	"golang.org/x/image/draw"
 )
+
+//"golang.org/x/image/draw"
 
 // AverageImageColor is  ...
 //  https://jimsaunders.net/2015/05/22/manipulating-colors-in-go.html
@@ -47,6 +54,35 @@ type colorSamplerFunc func(m image.Image, x, y int) color.Color
 
 func colorAt(m image.Image, x, y int) color.Color {
 	return m.At(x, y)
+}
+
+func colorAverageFactory(w, h int) colorSamplerFunc {
+
+	fn := func(m image.Image, x, y int) color.Color {
+		var si image.Image
+
+		dx, dy := w/2, h/2
+		r := image.Rect(x-dx, y-dy, x+dx, y+dy)
+
+		switch i := m.(type) {
+		case *image.Alpha:
+			si = i.SubImage(r)
+		case *image.Alpha16:
+			si = i.SubImage(r)
+		case *image.RGBA:
+			si = i.SubImage(r)
+		case *image.NRGBA:
+			si = i.SubImage(r)
+		case *image.YCbCr:
+			si = i.SubImage(r)
+		default:
+			log.Fatal("Invalid image type")
+		}
+		return AverageImageColor(si)
+
+	}
+
+	return fn
 }
 
 func loadImage(path string) (image.Image, error) {
@@ -118,8 +154,25 @@ func downsize(m image.Image, sampler colorSamplerFunc, pixelx, pixely int) (imag
 	return g, nil
 
 }
+func palettedImage(m image.Image, pal color.Palette) *image.Paletted {
+	bounds := m.Bounds()
+	palImg := image.NewPaletted(bounds, pal)
+	draw.Draw(palImg, palImg.Rect, m, bounds.Min, draw.Over)
 
-func upsize(m image.Image, sampler colorSamplerFunc, mx, my int) (image.Image, error) {
+	return palImg
+}
+func palettedImageiOLD(m image.Image, pal color.Palette) image.Image {
+	bounds := m.Bounds()
+	i := image.NewNRGBA(bounds)
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			c := m.At(x, y)
+			i.Set(x, y, pal.Convert(c))
+		}
+	}
+	return i
+}
+func upsize(m image.Image, mx, my int) (image.Image, error) {
 
 	bounds := m.Bounds()
 	Dx := bounds.Dx()
@@ -144,23 +197,135 @@ func upsize(m image.Image, sampler colorSamplerFunc, mx, my int) (image.Image, e
 	return g, nil
 }
 
+func getPal2(img image.Image, maximumColorCount int) color.Palette {
+	quantizer := quantize.NewHierarhicalQuantizer()
+	colors, err := quantizer.Quantize(img, maximumColorCount)
+	if err != nil {
+		panic(err)
+	}
+
+	palette := make([]color.Color, len(colors))
+	for index, clr := range colors {
+		palette[index] = clr
+	}
+	return palette
+}
+
+func getPal(i image.Image, maximumColorCount int) color.Palette {
+	paletteBuilder := vibrant.NewPaletteBuilder(i).
+		ClearFilters().
+		ClearTargets().
+		ClearRegion().
+		MaximumColorCount(uint32(maximumColorCount)).
+		Scaler(draw.ApproxBiLinear)
+
+	palette := paletteBuilder.Generate()
+
+	swatches := palette.Swatches()
+	sort.Sort(populationSwatchSorter(swatches))
+	colorPalette := make(color.Palette, 0, len(swatches))
+	for _, swatch := range swatches {
+		colorPalette = append(colorPalette, swatch.Color())
+	}
+	return colorPalette
+
+}
+
+type populationSwatchSorter []*vibrant.Swatch
+
+func (p populationSwatchSorter) Len() int           { return len(p) }
+func (p populationSwatchSorter) Less(i, j int) bool { return p[i].Population() > p[j].Population() }
+func (p populationSwatchSorter) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
+type hueSwatchSorter []*vibrant.Swatch
+
+func (p hueSwatchSorter) Len() int           { return len(p) }
+func (p hueSwatchSorter) Less(i, j int) bool { return p[i].HSL().H < p[j].HSL().H }
+func (p hueSwatchSorter) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
 func main() {
-	m, err := loadImage("400x400.jpg")
+	input := "pokemon.jpg"
+
+	m, err := loadImage(input)
 	if err != nil {
 		log.Fatal(err)
 	}
-	mm, err := downsize(m, colorAt, 50, 50)
-	if err != nil {
-		log.Fatal(err)
-	}
-	mm2, err := upsize(mm, colorAt, 8, 8)
+	//fn := colorAt
+	fn := colorAverageFactory(3, 3)
+	mm, err := downsize(m, fn, 41, 38)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = saveImagePng(mm2, "pokemon.png")
+	mm2, err := upsize(mm, 16, 16)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	err = saveImagePng(mm2, "pokemon-2.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	pal := getPal(mm, 8)
+
+	imgpal := palettedImage(mm, pal)
+
+	saveCoding("coding.txt", imgpal)
+
+	mm3, err := upsize(imgpal, 16, 16)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = saveImagePng(mm3, "pokemon-3.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func saveCoding(path string, imgpal *image.Paletted) error {
+
+	// outputFile is a File type which satisfies Writer interface
+	w, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer w.Close()
+
+	colorName := func(idx int) string {
+		return string(97 + idx)
+	}
+
+	fmt.Fprintf(w, "# Palette\n\n")
+	for j, c := range imgpal.Palette {
+		fmt.Fprintf(w, "%s: rgb(%v)\n", colorName(j), c)
+	}
+
+	r := imgpal.Bounds()
+	fmt.Fprintf(w, "\n# Image (%d x %d)\n\n", r.Dx(), r.Dy())
+
+	for y := r.Min.Y; y < r.Max.Y; y++ {
+		fmt.Fprintf(w, "%d:", y+1)
+
+		var prec, count uint8
+
+		for x := r.Min.X; x < r.Max.X; x++ {
+			idx := imgpal.ColorIndexAt(x, y)
+			if idx == prec {
+				count++
+			} else {
+				if count > 0 {
+					fmt.Fprintf(w, " %d%s", count, colorName(int(prec)))
+				}
+				prec = idx
+				count = 1
+			}
+		}
+		if count > 0 {
+			fmt.Fprintf(w, " %d%s", count, colorName(int(prec)))
+		}
+		fmt.Fprint(w, "\n")
+	}
+
+	return nil
 }
