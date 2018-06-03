@@ -57,6 +57,9 @@ func colorAt(m image.Image, x, y int) color.Color {
 }
 
 func colorAverageFactory(w, h int) colorSamplerFunc {
+	if w == 1 && h == 1 {
+		return colorAt
+	}
 
 	fn := func(m image.Image, x, y int) color.Color {
 		var si image.Image
@@ -243,7 +246,7 @@ func (p hueSwatchSorter) Len() int           { return len(p) }
 func (p hueSwatchSorter) Less(i, j int) bool { return p[i].HSL().H < p[j].HSL().H }
 func (p hueSwatchSorter) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
-func main() {
+func pokemon() {
 	input := "pokemon.jpg"
 
 	m, err := loadImage(input)
@@ -328,4 +331,49 @@ func saveCoding(path string, imgpal *image.Paletted) error {
 	}
 
 	return nil
+}
+func main() {
+	input := "juve.jpg"
+	pixelX, pixelY := 26, 43
+
+	m, err := loadImage(input)
+	if err != nil {
+		log.Fatal(err)
+	}
+	//fn := colorAt
+	fn := colorAverageFactory(1, 1)
+	mm, err := downsize(m, fn, pixelX, pixelY)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mm2, err := upsize(mm, 16, 16)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = saveImagePng(mm2, "juve-pixel.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	//pal := getPal(mm, 3)
+	pal := color.Palette{
+		color.RGBA{R: 0, G: 0, B: 9, A: 255},
+		color.RGBA{R: 155, G: 155, B: 155, A: 255},
+		color.RGBA{R: 180, G: 160, B: 63, A: 255},
+	}
+
+	imgpal := palettedImage(mm, pal)
+
+	saveCoding("coding-juve.txt", imgpal)
+
+	mm3, err := upsize(imgpal, 16, 16)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = saveImagePng(mm3, "juve-pixel2.png")
+	if err != nil {
+		log.Fatal(err)
+	}
 }
