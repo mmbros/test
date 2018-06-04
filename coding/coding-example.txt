@@ -1,0 +1,7 @@
+// LEGENDA
+
+b = bianco
+n = nero
+v = rgb(0,255,0) // verde
+a = #f80         // arancione
+
