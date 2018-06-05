@@ -71,6 +71,7 @@ func init() {
 		"blu chiaro": "lightblue",
 		"giallo":     "yellow",
 		"arancione":  "orange",
+		"nero":       "black",
 	}
 }
 

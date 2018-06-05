@@ -2,27 +2,47 @@ package main
 
 import (
 	"bufio"
-	"fmt"
+	"errors"
 	"image/color"
+	"log"
 	"os"
+	"regexp"
 	"strings"
 )
 
+var ErrInvalidLegendRow = errors.New("Not a legend row")
+
 func parseRowLegenda(s string) (string, color.Color, error) {
+	var (
+		err       error
+		colorName string
+		color     color.Color
+	)
 
 	idx := strings.IndexRune(s, '=')
 	if idx < 0 {
-		return "", nil, fmt.Errorf("Invalid row legend: %s", s)
+		err = ErrInvalidLegendRow
 	}
-	name := strings.TrimSpace(s[0:idx])
-	colorFormat := strings.TrimSpace(s[idx+1:])
-	//fmt.Printf("%s -> %v\n", name, color)
-	color, err := ParseColor(colorFormat)
+
+	if err == nil {
+		colorName = strings.TrimSpace(s[0:idx])
+		reColorName := regexp.MustCompile(`^[[:alpha:]]\w*$`)
+		if !reColorName.MatchString(colorName) {
+			err = ErrInvalidLegendRow
+		}
+	}
+
+	if err == nil {
+		colorFormat := strings.TrimSpace(s[idx+1:])
+		//fmt.Printf("%s -> %v\n", name, color)
+		color, err = ParseColor(colorFormat)
+	}
+
 	if err != nil {
 		return "", nil, err
 	}
 
-	return name, color, nil
+	return colorName, color, nil
 }
 
 func readCodingFile(path string) error {
@@ -43,6 +63,7 @@ func readCodingFile(path string) error {
 	scanner.Split(bufio.ScanLines)
 
 	var section sectionEnum
+	np := NewNamedPalette()
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -57,10 +78,18 @@ func readCodingFile(path string) error {
 		}
 
 		if section == sectionLegenda {
-			parseRowLegenda(line)
-
+			key, col, err := parseRowLegenda(line)
+			if err == nil {
+				np.Add(key, col)
+			} else if err == ErrInvalidLegendRow {
+				section = sectionProgramma
+			} else {
+				log.Fatal(err)
+			}
 		}
+
 	}
+	np.Print()
 
 	return nil
 
