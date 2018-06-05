@@ -1,0 +1,12 @@
+// LEGENDA
+
+x = gray
+b = #0000
+
+// PROGRAMMA
+
+1 = 3x 1b 1x 1b 3x 1b 3x
+2 = 1x 3b 1x 1b 1x 1b 1x 1b 1x 1b 1x
+3 = 1x 3b 1x 1b 3x 1b 1x 1b 1x
+4 = 3x 1b 1x 1b 1x 1b 1x 1b 3x
+

@@ -1,101 +1,66 @@
 package main
 
 import (
-	"bufio"
-	"errors"
-	"image/color"
+	"image"
+	"image/png"
 	"log"
 	"os"
-	"regexp"
-	"strings"
 )
 
-var ErrInvalidLegendRow = errors.New("Not a legend row")
+func saveImagePng(m image.Image, path string) error {
 
-func parseRowLegenda(s string) (string, color.Color, error) {
-	var (
-		err       error
-		colorName string
-		color     color.Color
-	)
-
-	idx := strings.IndexRune(s, '=')
-	if idx < 0 {
-		err = ErrInvalidLegendRow
-	}
-
-	if err == nil {
-		colorName = strings.TrimSpace(s[0:idx])
-		reColorName := regexp.MustCompile(`^[[:alpha:]]\w*$`)
-		if !reColorName.MatchString(colorName) {
-			err = ErrInvalidLegendRow
-		}
-	}
-
-	if err == nil {
-		colorFormat := strings.TrimSpace(s[idx+1:])
-		//fmt.Printf("%s -> %v\n", name, color)
-		color, err = ParseColor(colorFormat)
-	}
-
-	if err != nil {
-		return "", nil, err
-	}
-
-	return colorName, color, nil
-}
-
-func readCodingFile(path string) error {
-
-	type sectionEnum byte
-	const (
-		sectionLegenda sectionEnum = iota
-		sectionProgramma
-	)
-
-	inFile, err := os.Open(path)
+	// outputFile is a File type which satisfies Writer interface
+	outputFile, err := os.Create(path)
 	if err != nil {
 		return err
 	}
-	defer inFile.Close()
+	defer outputFile.Close()
 
-	scanner := bufio.NewScanner(inFile)
-	scanner.Split(bufio.ScanLines)
-
-	var section sectionEnum
-	np := NewNamedPalette()
-
-	for scanner.Scan() {
-		line := scanner.Text()
-		// remove comments
-		if j := strings.Index(line, "//"); j >= 0 {
-			line = line[0:j]
-		}
-
-		line = strings.TrimSpace(line)
-		if len(line) == 0 {
-			continue
-		}
-
-		if section == sectionLegenda {
-			key, col, err := parseRowLegenda(line)
-			if err == nil {
-				np.Add(key, col)
-			} else if err == ErrInvalidLegendRow {
-				section = sectionProgramma
-			} else {
-				log.Fatal(err)
-			}
-		}
-
+	err = png.Encode(outputFile, m)
+	if err != nil {
+		return err
 	}
-	np.Print()
 
 	return nil
-
 }
+func upsize(m image.Image, mx, my int) (image.Image, error) {
 
+	bounds := m.Bounds()
+	Dx := bounds.Dx()
+	Dy := bounds.Dy()
+
+	g := image.NewNRGBA(image.Rect(0, 0, Dx*mx, Dy*my))
+
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+
+			c := m.At(x, y)
+			xx := mx * (x - bounds.Min.X)
+			yy := my * (y - bounds.Min.Y)
+			for iy := 0; iy < my; iy++ {
+				for ix := 0; ix < mx; ix++ {
+					g.Set(xx+ix, yy+iy, c)
+				}
+			}
+
+		}
+	}
+	return g, nil
+}
 func main() {
+	cod := NewCoding()
 
-	readCodingFile("coding-example.txt")
+	err := cod.Read("test.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	cod.Print()
+	img, err := upsize(cod.Image(), 16, 16)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = saveImagePng(img, "test.png")
+	if err != nil {
+		log.Fatal(err)
+	}
 }
