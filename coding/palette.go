@@ -5,6 +5,8 @@ import (
 	"image/color"
 	"io"
 	"os"
+
+	codimg "github.com/mmbros/test/coding/image"
 )
 
 // Palette is ...
@@ -83,7 +85,7 @@ func (mp *Palette) Palette() color.Palette {
 // The output format can be readed back in the coding file.
 func (mp *Palette) Fprint(w io.Writer) {
 	for _, k := range mp.i2k {
-		fmt.Fprintf(w, "%s = %s\n", k, ToString(mp.m[k]))
+		fmt.Fprintf(w, "%s = %s\n", k, codimg.ToString(mp.m[k]))
 	}
 }
 

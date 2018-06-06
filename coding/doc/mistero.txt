@@ -1,0 +1,28 @@
+// LEGENDA
+
+b = bianco
+ro = rosso
+v = viola
+ra = rosa
+a = arancione
+g = giallo
+
+// PROGRAMMA
+
+1 = 1b 12v 1b
+2 = 14v
+3 = 2v 10b 2v
+4 = 2ra 1b 8ra 1b 2ra
+5 = 2ra 1b 6ra 1b 1ra 1b 2ra
+6 = 2ra 1b 2ra 3b 3ra 1b 2ra
+7 = 2ro 1b 2ro 1b 1ro 1b 3ro 1b 1ro 1ra
+8 = 2ro 1b 2ro 3b 3ro 1b 1ro 1ra
+9 = 2a 1b 7a 1ro 1b 1ro 1ra
+10 = 2a 1b 7a 1ro 1b 1ro 1ra
+11 = 2g 1b 4g 3a 1ro 1b 1ro 1ra
+12 = 2g 10b 1ro 1ra
+13 = 7g 3a 3ro 1ra
+14 = 1b 6g 3a 3ro 1b
+
+
+

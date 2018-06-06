@@ -1,0 +1,52 @@
+// LEGENDA
+
+a = #fbdb14 // giallo
+b = #0000
+c = #e61b38  // rosso
+d = rgb(248,218,17)
+e = #e58297 // rosa
+f = nero
+g = rgb(214,164,51)
+h = #ca7685 // rosa scuro
+o = bianco
+
+// PROGRAMMA
+
+1 = 4f 33b 4f
+2 = 7f 27b 7f
+3 = 9f 23b 9f
+4 = 6f 3d 1f 21b 1f 3d 6f
+5 = 6f 4d 1f 19b 1f 4d 6f
+6 = 5f 6d 1f 17b 1f 6d 5f
+7 = 1b 4f 7d 1f 2b 11f 2b 1f 7d 4f 1b
+8 = 1b 4f 8d 2f 11d 2f 8d 4f 1b
+9 = 2b 3f 6d 2f 15d 2f 6d 3f 2b
+10 = 2b 3f 1g 29d 1g 3f 2b
+11 = 3b 2f 2g 27d 2g 2f 3b
+12 = 4b 1f 3g 1f 23d 1f 3g 1f 4b
+13 = 5b 3f 25d 3f 5b
+14 = 6b 1f 27d 1f 6b
+15 = 6b 1f 27d 1f 6b
+16 = 5b 1f 29d 1f 5b
+17 = 5b 1f 29d 1f 5b
+18 = 5b 1f 4d 4f 13d 4f 4d 1f 5b
+19 = 5b 1f 3d 3f 1o 2f 11d 2f 1o 3f 3d 1f 5b
+20 = 5b 1f 2d 3f 3o 1f 11d 1f 3o 3f 2d 1f 5b
+21 = 5b 1f 2d 4f 2o 1f 11d 1f 2o 4f 2d 1f 5b
+22 = 5b 1f 2d 7f 11d 7f 2d 1f 5b
+23 = 5b 1f 2d 7f 11d 7f 2d 1f 5b
+24 = 5b 1f 3d 5f 5d 3f 5d 5f 3d 1f 5b
+25 = 4b 1f 15d 1f 15d 1f 4b
+26 = 4b 1f 1d 5f 19d 5f 1d 1f 4b
+27 = 4b 2f 5c 1f 3d 1f 4d 1f 4d 1f 3d 1f 5c 2f 4b
+28 = 4b 1f 7c 1f 3d 4f 1h 4f 3d 1f 7c 1f 4b
+29 = 4b 1f 7c 1f 4d 1f 5h 1f 4d 1f 7c 1f 4b
+30 = 4b 1f 7c 1f 4d 1f 1h 3e 1h 1f 4d 1f 7c 1f 4b
+31 = 4b 1f 6c 1f 5d 1f 5e 1f 5d 1f 6c 1f 4b
+32 = 5b 1f 5c 1f 5d 1f 5e 1f 5d 1f 5c 1f 5b
+33 = 6b 5f 7d 1f 3e 1f 7d 5f 6b
+34 = 7b 1f 3g 8d 1f 1e 1f 8d 3g 1f 7b
+35 = 8b 2f 3g 7d 1f 7d 3g 2f 8b
+36 = 10b 2f 5g 7d 5g 2f 10b
+37 = 12b 3f 11g 3f 12b
+38 = 15b 11f 15b

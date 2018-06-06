@@ -1,4 +1,4 @@
-package main
+package image
 
 import (
 	"fmt"
@@ -34,30 +34,46 @@ Functional notation: rgb(R G B[ A ]) or rgba(R G B A)
 	functional notation.
 
 */
-
-var patternRgb = []string{
-	// rgb(r,g,b)
-	`rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)`,
-	// rgb[a](r,g,b,a)
-	`rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(0\.?|0?\.\d+|1|1\.0*|\d+\%)\s*\)`,
-	// rgb(r g b)
-	`rgb\(\s*(\d+)\s+(\d+)\s+(\d+)\s*\)`,
-	// rgb[a](r g b a)
-	`rgba?\(\s*(\d+)\s+(\d+)\s+(\d+)\s+(0\.?|0?\.\d+|1|1\.0*|\d+\%)\s*\)`,
-	// rgb(r%,g%,b%)
-	`rgb\(\s*(\d+\%)\s*,\s*(\d+\%)\s*,\s*(\d+\%)\s*\)`,
-	// rgb[a](r%,g%,b%,a)
-	`rgba?\(\s*(\d+\%)\s*,\s*(\d+\%)\s*,\s*(\d+\%)\s*,\s*(0\.?|0?\.\d+|1|1\.0*|\d+\%)\s*\)`,
-	// rgb(r% g% b%)
-	`rgb\(\s*(\d+\%)\s+(\d+\%)\s+(\d+\%)\s*\)`,
-	// rgb[a](r% g% b% a%)
-	`rgba?\(\s*(\d+\%)\s+(\d+\%)\s+(\d+\%)\s+(0\.?|0?\.\d+|1|1\.0*|\d+\%)\s*\)`,
-}
-
 var (
-	reRgb            []*regexp.Regexp
-	customColorNames map[string]string
-	color2name       map[string]string
+	patternRgb = []string{
+		// rgb(r,g,b)
+		`rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)`,
+		// rgb[a](r,g,b,a)
+		`rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(0\.?|0?\.\d+|1|1\.0*|\d+\%)\s*\)`,
+		// rgb(r g b)
+		`rgb\(\s*(\d+)\s+(\d+)\s+(\d+)\s*\)`,
+		// rgb[a](r g b a)
+		`rgba?\(\s*(\d+)\s+(\d+)\s+(\d+)\s+(0\.?|0?\.\d+|1|1\.0*|\d+\%)\s*\)`,
+		// rgb(r%,g%,b%)
+		`rgb\(\s*(\d+\%)\s*,\s*(\d+\%)\s*,\s*(\d+\%)\s*\)`,
+		// rgb[a](r%,g%,b%,a)
+		`rgba?\(\s*(\d+\%)\s*,\s*(\d+\%)\s*,\s*(\d+\%)\s*,\s*(0\.?|0?\.\d+|1|1\.0*|\d+\%)\s*\)`,
+		// rgb(r% g% b%)
+		`rgb\(\s*(\d+\%)\s+(\d+\%)\s+(\d+\%)\s*\)`,
+		// rgb[a](r% g% b% a%)
+		`rgba?\(\s*(\d+\%)\s+(\d+\%)\s+(\d+\%)\s+(0\.?|0?\.\d+|1|1\.0*|\d+\%)\s*\)`,
+	}
+
+	// define the custom color names
+	customname2colorname = map[string]string{
+		"arancione":  "orange",
+		"azzurro":    "azure",
+		"bianco":     "white",
+		"blu":        "blue",
+		"blu chiaro": "lightblue",
+		"giallo":     "yellow",
+		"grigio":     "gray",
+		"marrone":    "brown",
+		"nero":       "black",
+		"rosa":       "pink",
+		"rosso":      "red",
+		"verde":      "green",
+		"viola":      "violet",
+	}
+
+	reRgb                []*regexp.Regexp
+	hex2colorname        map[string]string
+	colorname2customname map[string]string
 )
 
 func init() {
@@ -68,23 +84,16 @@ func init() {
 	}
 
 	// build the hex -> name mapping
-	color2name = map[string]string{}
+	hex2colorname = map[string]string{}
 	for name, c := range colornames.Map {
 		hex := ToHex(c)
-		color2name[hex] = name
+		hex2colorname[hex] = name
 	}
 
-	customColorNames = map[string]string{
-		"arancione":  "orange",
-		"azzurro":    "azure",
-		"bianco":     "white",
-		"blu chiaro": "lightblue",
-		"giallo":     "yellow",
-		"marrone":    "brown",
-		"nero":       "black",
-		"rosa":       "pink",
-		"rosso":      "red",
-		"verde":      "green",
+	// build the inverse mapping from colornames to custom color names
+	colorname2customname = map[string]string{}
+	for custom, name := range customname2colorname {
+		colorname2customname[name] = custom
 	}
 
 }
@@ -279,7 +288,7 @@ func ParseColor(s string) (color.Color, error) {
 		return parseRgba(s)
 	}
 	// named color
-	if snew, ok := customColorNames[s]; ok {
+	if snew, ok := customname2colorname[s]; ok {
 		s = snew
 	}
 	if c, ok := colornames.Map[s]; ok {
@@ -334,10 +343,11 @@ func ToHex(c color.Color) string {
 // ToString ...
 func ToString(c color.Color) string {
 	hex := ToHex(c)
-	if name, ok := color2name[hex]; ok {
+	if name, ok := hex2colorname[hex]; ok {
+		if custom, ok2 := colorname2customname[name]; ok2 {
+			return custom
+		}
 		return name
 	}
-
 	return ToRGB(c)
-
 }

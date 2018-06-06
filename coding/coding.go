@@ -11,6 +11,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	codimg "github.com/mmbros/test/coding/image"
 )
 
 // Coding represents the coding informations for drawing a paletted image.
@@ -132,7 +134,8 @@ func parseRowLegend(s string) (string, color.Color, error) {
 	if err == nil {
 		colorFormat := strings.TrimSpace(s[idx+1:])
 		//fmt.Printf("%s -> %v\n", name, color)
-		color, err = ParseColor(colorFormat)
+		color, err = codimg.ParseColor(colorFormat)
+
 	}
 
 	if err != nil {
@@ -213,4 +216,18 @@ func (cod *Coding) Image() *image.Paletted {
 		}
 	}
 	return img
+}
+
+// SaveAs save the coding to a file.
+func (cod *Coding) SaveAs(path string) error {
+	// outputFile is a File type which satisfies Writer interface
+	w, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer w.Close()
+
+	cod.Fprint(w)
+
+	return nil
 }

@@ -1,66 +1,169 @@
 package main
 
 import (
+	"fmt"
 	"image"
-	"image/png"
 	"log"
 	"os"
+
+	codimg "github.com/mmbros/test/coding/image"
 )
 
-func saveImagePng(m image.Image, path string) error {
+func paletted2coding(imgpal *image.Paletted) (*Coding, error) {
+
+	colorName := func(idx int) string {
+		return string(97 + idx)
+	}
+
+	cod := NewCoding()
+
+	// create the coding.Palette
+	for j, c := range imgpal.Palette {
+		cod.pal.Add(colorName(j), c)
+	}
+
+	r := imgpal.Bounds()
+
+	for y := r.Min.Y; y < r.Max.Y; y++ {
+		row := ProgramRow{}
+
+		var prec, count uint8
+
+		for x := r.Min.X; x < r.Max.X; x++ {
+			idx := imgpal.ColorIndexAt(x, y)
+			if idx == prec {
+				count++
+			} else {
+				if count > 0 {
+					item := ProgramItem{
+						n: int(count),
+						k: colorName(int(prec)),
+					}
+					row = append(row, &item)
+				}
+				prec = idx
+				count = 1
+			}
+		}
+		if count > 0 {
+			item := ProgramItem{
+				n: int(count),
+				k: colorName(int(prec)),
+			}
+			row = append(row, &item)
+		}
+		cod.prog = append(cod.prog, row)
+	}
+	//for y := r.Min.Y; y < r.Max.Y; y++ {
+	//	row := ProgramRow{}
+
+	//	var prec, count uint8
+
+	//	for x := r.Min.X; x < r.Max.X; x++ {
+	//		idx := imgpal.ColorIndexAt(x, y)
+	//		if idx == prec {
+	//			count++
+	//		} else {
+	//			if count > 0 {
+	//				item := ProgramItem{
+	//					n: int(count),
+	//					k: colorName(int(prec)),
+	//				}
+	//				row = append(row, &item)
+	//			}
+	//			prec = idx
+	//			count = 1
+	//		}
+	//	}
+	//	if count > 0 {
+	//		item := ProgramItem{
+	//			n: int(count),
+	//			k: colorName(int(prec)),
+	//		}
+	//		row = append(row, &item)
+	//	}
+	//	cod.prog.Add(row)
+	//}
+
+	return cod, nil
+}
+
+func saveCodingOld(path string, imgpal *image.Paletted) error {
 
 	// outputFile is a File type which satisfies Writer interface
-	outputFile, err := os.Create(path)
+	w, err := os.Create(path)
 	if err != nil {
 		return err
 	}
-	defer outputFile.Close()
+	defer w.Close()
 
-	err = png.Encode(outputFile, m)
-	if err != nil {
-		return err
+	colorName := func(idx int) string {
+		return string(97 + idx)
+	}
+
+	fmt.Fprintf(w, "// Palette\n\n")
+	for j, c := range imgpal.Palette {
+		fmt.Fprintf(w, "%s: rgb(%v)\n", colorName(j), c)
+	}
+
+	r := imgpal.Bounds()
+	fmt.Fprintf(w, "\n# Image (%d x %d)\n\n", r.Dx(), r.Dy())
+
+	for y := r.Min.Y; y < r.Max.Y; y++ {
+		fmt.Fprintf(w, "%d:", y+1)
+
+		var prec, count uint8
+
+		for x := r.Min.X; x < r.Max.X; x++ {
+			idx := imgpal.ColorIndexAt(x, y)
+			if idx == prec {
+				count++
+			} else {
+				if count > 0 {
+					fmt.Fprintf(w, " %d%s", count, colorName(int(prec)))
+				}
+				prec = idx
+				count = 1
+			}
+		}
+		if count > 0 {
+			fmt.Fprintf(w, " %d%s", count, colorName(int(prec)))
+		}
+		fmt.Fprint(w, "\n")
 	}
 
 	return nil
 }
-func upsize(m image.Image, mx, my int) (image.Image, error) {
 
-	bounds := m.Bounds()
-	Dx := bounds.Dx()
-	Dy := bounds.Dy()
-
-	g := image.NewNRGBA(image.Rect(0, 0, Dx*mx, Dy*my))
-
-	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-
-			c := m.At(x, y)
-			xx := mx * (x - bounds.Min.X)
-			yy := my * (y - bounds.Min.Y)
-			for iy := 0; iy < my; iy++ {
-				for ix := 0; ix < mx; ix++ {
-					g.Set(xx+ix, yy+iy, c)
-				}
-			}
-
-		}
-	}
-	return g, nil
-}
-func main() {
+func txt2png(pathTxt, pathPng string) error {
 	cod := NewCoding()
 
-	err := cod.Read("gabry.txt")
+	err := cod.Read(pathTxt)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	cod.Print()
-	img, err := upsize(cod.Image(), 16, 16)
+	z := 6
+	img, err := codimg.Zoom(cod.Image(), z, z)
+	if err != nil {
+		return err
+	}
+	err = codimg.SaveAsPng(img, pathPng)
+	return err
+}
+
+func main() {
+	//err := txt2png("doc/mistero.txt", "img/mistero.png")
+	err := txt2png("doc/pokemon.txt", "img/pok.png")
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = saveImagePng(img, "gabry.png")
-	if err != nil {
-		log.Fatal(err)
-	}
+}
+
+func main2() {
+	imgpal := codimg.Pokemon()
+	cod, _ := paletted2coding(imgpal)
+	cod.Print()
+	cod.SaveAs("doc/pokemon.txt")
+
 }

@@ -1,0 +1,17 @@
+// LEGENDA
+
+b = bianco
+r = rosso
+
+// PROGRAMMA
+
+1 = 1b 12r 1b
+2 = 14r
+3 = 5r 1b 8r
+4 = 5r 3b 6r
+5 = 5r 4b 5r
+6 = 5r 3b 6r
+7 = 5r 1b 8r
+8 = 14r
+9 = 1b 12r 1b
+
