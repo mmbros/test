@@ -1,4 +1,4 @@
-package image
+package coding
 
 import (
 	"errors"
@@ -112,16 +112,24 @@ func colorAt(m image.Image, x, y int) color.Color {
 	return m.At(x, y)
 }
 
-func colorAverageFactory(w, h int) colorSamplerFunc {
-	if w == 1 && h == 1 {
+func colorAverageFactory(xsample, ysample int) colorSamplerFunc {
+	if xsample <= 0 {
+		xsample = 1
+	}
+	if ysample <= 0 {
+		ysample = 1
+	}
+	if xsample == 1 && ysample == 1 {
 		return colorAt
 	}
 
 	fn := func(m image.Image, x, y int) color.Color {
 		var si image.Image
 
-		dx, dy := w/2, h/2
-		r := image.Rect(x-dx, y-dy, x+dx, y+dy)
+		x -= xsample / 2
+		y -= ysample / 2
+
+		r := image.Rect(x, y, x+xsample, y+ysample)
 
 		switch i := m.(type) {
 		case *image.Alpha:
@@ -135,26 +143,24 @@ func colorAverageFactory(w, h int) colorSamplerFunc {
 		case *image.YCbCr:
 			si = i.SubImage(r)
 		default:
-			log.Fatal("Invalid image type")
+			log.Fatal("colorAverageFactor: Invalid image type")
 		}
 		return AverageImageColor(si)
-
 	}
 
 	return fn
 }
 
-func loadImage(path string) (image.Image, error) {
+func LoadImage(path string) (image.Image, error) {
 	reader, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
 	defer reader.Close()
-	m, imageType, err := image.Decode(reader)
+	m, _, err := image.Decode(reader)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("image-type = %s\n", imageType)
 	return m, nil
 }
 
@@ -197,19 +203,10 @@ func Pixelate(m image.Image, sampler colorSamplerFunc, pixelx, pixely int) (imag
 	return g, nil
 
 }
-func palettedImage(m image.Image, pal color.Palette) *image.Paletted {
-	bounds := m.Bounds()
-	palImg := image.NewPaletted(bounds, pal)
-	draw.Draw(palImg, palImg.Rect, m, bounds.Min, draw.Over)
 
-	return palImg
-}
-
-func getPal(i image.Image, maximumColorCount int) color.Palette {
+func GetPalette(i image.Image, maximumColorCount int) color.Palette {
 	paletteBuilder := vibrant.NewPaletteBuilder(i).
 		ClearFilters().
-		ClearTargets().
-		ClearRegion().
 		MaximumColorCount(uint32(maximumColorCount)).
 		Scaler(draw.ApproxBiLinear)
 
@@ -225,6 +222,34 @@ func getPal(i image.Image, maximumColorCount int) color.Palette {
 
 }
 
+func PalettedImage(i image.Image, pal color.Palette) *image.Paletted {
+	bounds := i.Bounds()
+	palImg := image.NewPaletted(bounds, pal)
+	draw.Draw(palImg, palImg.Rect, i, bounds.Min, draw.Over)
+	return palImg
+}
+
+func PalettedImageExt(i image.Image, xsize, ysize, xsample, ysample, colors int) (*image.Paletted, error) {
+	colorFn := colorAverageFactory(xsample, ysample)
+	imgpix, err := Pixelate(i, colorFn, xsize, ysize)
+	if err != nil {
+		return nil, err
+	}
+	pal := GetPalette(imgpix, colors)
+	imgpal := PalettedImage(imgpix, pal)
+	return imgpal, nil
+}
+
+func PalettedImageExt2(i image.Image, xsize, ysize, xsample, ysample int, pal color.Palette) (*image.Paletted, error) {
+	colorFn := colorAverageFactory(xsample, ysample)
+	imgpix, err := Pixelate(i, colorFn, xsize, ysize)
+	if err != nil {
+		return nil, err
+	}
+	imgpal := PalettedImage(imgpix, pal)
+	return imgpal, nil
+}
+
 type populationSwatchSorter []*vibrant.Swatch
 
 func (p populationSwatchSorter) Len() int           { return len(p) }
@@ -236,40 +261,3 @@ type hueSwatchSorter []*vibrant.Swatch
 func (p hueSwatchSorter) Len() int           { return len(p) }
 func (p hueSwatchSorter) Less(i, j int) bool { return p[i].HSL().H < p[j].HSL().H }
 func (p hueSwatchSorter) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-
-func Pokemon() *image.Paletted {
-
-	input := "img/pokemon.jpg"
-
-	m, err := loadImage(input)
-	if err != nil {
-		log.Fatal(err)
-	}
-	//fn := colorAt
-	fn := colorAverageFactory(3, 3)
-	mm, err := Pixelate(m, fn, 41, 38)
-	if err != nil {
-		log.Fatal(err)
-	}
-	/*
-		mm2, err := Zoom(mm, 16, 16)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-			err = SaveAsPng(mm2, "pokemon-2.png")
-			if err != nil {
-				log.Fatal(err)
-			}
-	*/
-	pal := getPal(mm, 8)
-	imgpal := palettedImage(mm, pal)
-	/*
-		//	saveCoding("coding.txt", imgpal)
-		err = SaveAsPng(imgpal, "pokemon-paletted.png")
-		if err != nil {
-			log.Fatal(err)
-		}
-	*/
-	return imgpal
-}

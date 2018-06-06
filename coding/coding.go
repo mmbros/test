@@ -1,4 +1,4 @@
-package main
+package coding
 
 import (
 	"bufio"
@@ -11,8 +11,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-
-	codimg "github.com/mmbros/test/coding/image"
 )
 
 // Coding represents the coding informations for drawing a paletted image.
@@ -21,34 +19,34 @@ type Coding struct {
 	prog Program
 }
 
-type sectionEnum byte
-
-const (
-	sectionLegend sectionEnum = iota
-	sectionProgram
-	sectionEnd
-)
-
-var (
-	errInvalidLegendRow  = errors.New("Invalid legend row")
-	errInvalidProgramRow = errors.New("Invalid program row")
-)
-
-// NewCoding returns a new coding object.
-func NewCoding() *Coding {
+// New returns a new empty coding object.
+func New() *Coding {
 	return &Coding{
 		pal:  NewPalette(),
 		prog: Program{},
 	}
 }
 
-// Read reads the coding file at path.
-func (cod *Coding) Read(path string) error {
+// Parsing errors
+var (
+	errInvalidLegendRow  = errors.New("Invalid legend row")
+	errInvalidProgramRow = errors.New("Invalid program row")
+)
+
+// NewFromFile reads the coding file at path and returns the corrisponding coding object.
+func NewFromFile(path string) (*Coding, error) {
+
+	type sectionEnum byte
+	const (
+		sectionLegend sectionEnum = iota
+		sectionProgram
+		sectionEnd
+	)
 
 	// open file
 	inFile, err := os.Open(path)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer inFile.Close()
 
@@ -58,8 +56,7 @@ func (cod *Coding) Read(path string) error {
 	var section sectionEnum
 	var progrow int
 
-	pal := NewPalette()
-	prog := Program{}
+	cod := New()
 
 	// read each line of the file
 	for scanner.Scan() {
@@ -69,7 +66,10 @@ func (cod *Coding) Read(path string) error {
 			line = line[0:j]
 		}
 
+		// trim spaces
 		line = strings.TrimSpace(line)
+
+		// skip empty lines
 		if len(line) == 0 {
 			continue
 		}
@@ -77,11 +77,14 @@ func (cod *Coding) Read(path string) error {
 		if section == sectionLegend {
 			key, col, err := parseRowLegend(line)
 			if err == nil {
-				pal.Add(key, col)
+				// add new color to the palette
+				cod.pal.Add(key, col)
+				continue
 			} else if err == errInvalidLegendRow {
+				// change to program section
 				section = sectionProgram
 			} else {
-				return err
+				return nil, err
 			}
 		}
 
@@ -89,26 +92,20 @@ func (cod *Coding) Read(path string) error {
 			instr, err := parseRowProgram(line, progrow)
 			if err == nil {
 				progrow++
-				err = prog.Add(instr)
-				if err != nil {
-					return err
+				if err = cod.prog.Add(instr); err != nil {
+					return nil, err
 				}
-
 			} else if err == errInvalidProgramRow {
 				section = sectionEnd
 			} else {
-				return err
+				return nil, err
 			}
 		}
 	}
-	if e := prog.CheckColors(pal); e != nil {
-		return e
+	if e := cod.prog.CheckColors(cod.pal); e != nil {
+		return nil, e
 	}
-	cod.pal = pal
-	cod.prog = prog
-
-	return nil
-
+	return cod, nil
 }
 
 func parseRowLegend(s string) (string, color.Color, error) {
@@ -134,7 +131,7 @@ func parseRowLegend(s string) (string, color.Color, error) {
 	if err == nil {
 		colorFormat := strings.TrimSpace(s[idx+1:])
 		//fmt.Printf("%s -> %v\n", name, color)
-		color, err = codimg.ParseColor(colorFormat)
+		color, err = ParseColor(colorFormat)
 
 	}
 
@@ -230,4 +227,54 @@ func (cod *Coding) SaveAs(path string) error {
 	cod.Fprint(w)
 
 	return nil
+}
+
+func NewFromPaletted(imgpal *image.Paletted) *Coding {
+
+	// standard color names
+	colorName := func(idx int) string {
+		return string(97 + idx)
+	}
+
+	cod := New()
+
+	// create the coding.Palette
+	for j, c := range imgpal.Palette {
+		cod.pal.Add(colorName(j), c)
+	}
+
+	r := imgpal.Bounds()
+
+	for y := r.Min.Y; y < r.Max.Y; y++ {
+		row := ProgramRow{}
+
+		var prec, count uint8
+
+		for x := r.Min.X; x < r.Max.X; x++ {
+			idx := imgpal.ColorIndexAt(x, y)
+			if idx == prec {
+				count++
+			} else {
+				if count > 0 {
+					item := ProgramItem{
+						n: int(count),
+						k: colorName(int(prec)),
+					}
+					row = append(row, &item)
+				}
+				prec = idx
+				count = 1
+			}
+		}
+		if count > 0 {
+			item := ProgramItem{
+				n: int(count),
+				k: colorName(int(prec)),
+			}
+			row = append(row, &item)
+		}
+		cod.prog = append(cod.prog, row)
+	}
+
+	return cod
 }

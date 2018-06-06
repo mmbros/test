@@ -1,0 +1,51 @@
+// LEGENDA
+
+a = rgb(248,248,248)
+b = rgb(246,216,21)
+c = rgb(40,40,38)
+d = rgb(218,196,19)
+e = rgb(192,31,54)
+f = rgb(220,189,49)
+g = rgb(236,167,177)
+h = rgb(206,139,112)
+
+// PROGRAMMA
+
+1 = 4c 33a 4c
+2 = 7c 27a 7c
+3 = 9c 23a 9c
+4 = 6c 3b 1c 21a 1c 3b 6c
+5 = 6c 4b 1c 19a 1c 4b 6c
+6 = 5c 6b 1c 17a 1c 6b 5c
+7 = 1a 4c 7b 1c 2a 11c 2a 1c 7b 4c 1a
+8 = 1a 4c 8b 2c 11b 2c 8b 4c 1a
+9 = 2a 3c 6b 2c 15b 2c 6b 3c 2a
+10 = 2a 3c 1f 29b 1f 3c 2a
+11 = 3a 2c 2f 27b 2f 2c 3a
+12 = 4a 1c 3f 1c 23b 1c 3f 1c 4a
+13 = 5a 3c 25b 3c 5a
+14 = 6a 1c 27b 1c 6a
+15 = 6a 1c 27b 1c 6a
+16 = 5a 1c 29b 1c 5a
+17 = 5a 1c 29b 1c 5a
+18 = 5a 1c 4b 4c 13b 4c 4b 1c 5a
+19 = 5a 1c 3b 3c 1a 2c 11b 2c 1a 3c 3b 1c 5a
+20 = 5a 1c 2b 3c 3a 1c 11b 1c 3a 3c 2b 1c 5a
+21 = 5a 1c 2b 4c 2a 1c 11b 1c 2a 4c 2b 1c 5a
+22 = 5a 1c 2b 7c 11b 7c 2b 1c 5a
+23 = 5a 1c 2b 7c 11b 7c 2b 1c 5a
+24 = 5a 1c 3b 5c 5b 3c 5b 5c 3b 1c 5a
+25 = 4a 1c 15b 1c 15b 1c 4a
+26 = 4a 1c 1b 5c 19b 5c 1b 1c 4a
+27 = 4a 2c 5e 1c 3b 1c 4b 1c 4b 1c 3b 1c 5e 2c 4a
+28 = 4a 1c 7e 1c 3b 4c 1h 4c 3b 1c 7e 1c 4a
+29 = 4a 1c 7e 1c 4b 1c 5h 1c 4b 1c 7e 1c 4a
+30 = 4a 1c 7e 1c 4b 1c 1h 3g 1h 1c 4b 1c 7e 1c 4a
+31 = 4a 1c 6e 1c 5b 1c 5g 1c 5b 1c 6e 1c 4a
+32 = 5a 1c 5e 1c 5b 1c 5g 1c 5b 1c 5e 1c 5a
+33 = 6a 5c 7b 1c 3g 1c 7b 5c 6a
+34 = 7a 1c 3f 8b 1c 1g 1c 8b 3f 1c 7a
+35 = 8a 2c 3f 7b 1c 7b 3f 2c 8a
+36 = 10a 2c 5f 7b 5f 2c 10a
+37 = 12a 3c 11f 3c 12a
+38 = 15a 11c 15a
