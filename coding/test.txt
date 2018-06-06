@@ -1,10 +1,11 @@
 // LEGENDA
 
-x = gray
-b = #0000
+x = rosa
+b = marrone
 
 // PROGRAMMA
 
+// ciao
 1 = 3x 1b 1x 1b 3x 1b 3x
 2 = 1x 3b 1x 1b 1x 1b 1x 1b 1x 1b 1x
 3 = 1x 3b 1x 1b 3x 1b 1x 1b 1x

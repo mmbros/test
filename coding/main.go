@@ -50,7 +50,7 @@ func upsize(m image.Image, mx, my int) (image.Image, error) {
 func main() {
 	cod := NewCoding()
 
-	err := cod.Read("test.txt")
+	err := cod.Read("gabry.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -59,7 +59,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = saveImagePng(img, "test.png")
+	err = saveImagePng(img, "gabry.png")
 	if err != nil {
 		log.Fatal(err)
 	}

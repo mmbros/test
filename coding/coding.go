@@ -34,7 +34,10 @@ var (
 
 // NewCoding returns a new coding object.
 func NewCoding() *Coding {
-	return &Coding{}
+	return &Coding{
+		pal:  NewPalette(),
+		prog: Program{},
+	}
 }
 
 // Read reads the coding file at path.

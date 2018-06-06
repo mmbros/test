@@ -57,22 +57,36 @@ var patternRgb = []string{
 var (
 	reRgb            []*regexp.Regexp
 	customColorNames map[string]string
+	color2name       map[string]string
 )
 
 func init() {
+	// build the array of rgb regexp
 	reRgb = make([]*regexp.Regexp, len(patternRgb))
 	for j, pattern := range patternRgb {
 		reRgb[j] = regexp.MustCompile(pattern)
 	}
 
+	// build the hex -> name mapping
+	color2name = map[string]string{}
+	for name, c := range colornames.Map {
+		hex := ToHex(c)
+		color2name[hex] = name
+	}
+
 	customColorNames = map[string]string{
+		"arancione":  "orange",
 		"azzurro":    "azure",
 		"bianco":     "white",
 		"blu chiaro": "lightblue",
 		"giallo":     "yellow",
-		"arancione":  "orange",
+		"marrone":    "brown",
 		"nero":       "black",
+		"rosa":       "pink",
+		"rosso":      "red",
+		"verde":      "green",
 	}
+
 }
 
 func parsePerc(s string) (int, bool) {
@@ -275,19 +289,55 @@ func ParseColor(s string) (color.Color, error) {
 
 }
 
-// ColorToString returns a string representing the color.
-func ColorToString(c color.Color) string {
-	const d uint32 = 0x101
-	r, g, b, a := c.RGBA()
+func rgba(c color.Color) (uint8, uint8, uint8, uint8) {
+	C := color.NRGBAModel.Convert(c).(color.NRGBA)
+	return C.R, C.G, C.B, C.A
+}
 
-	r /= d
-	g /= d
-	b /= d
-	a /= d
+// ToRGB returns a string representing the color.
+func ToRGB(c color.Color) string {
+	r, g, b, a := rgba(c)
 	if a == 255 {
 		return fmt.Sprintf("rgb(%d,%d,%d)", r, g, b)
 	}
 
 	return fmt.Sprintf("rgba(%d,%d,%d,%d)", r, g, b, a)
+
+}
+
+// ToHex returns string representation of the color in hex format.
+func ToHex(c color.Color) string {
+	var s string
+	r, g, b, a := rgba(c)
+
+	s = fmt.Sprintf("#%02x%02x%02x", r, g, b)
+	if a != 255 {
+		s += fmt.Sprintf("%02x", a)
+	}
+	// check the reduced format #rgb[a]
+	for j := 1; j < len(s); j += 2 {
+		if s[j] != s[j+1] {
+			// normal format
+			return s
+		}
+	}
+	// calc the reduced format
+	// #rrggbbaa
+	// 012345678
+	s1 := s[0:2] + s[3:4] + s[5:6]
+	if a != 255 {
+		s1 += s[7:8]
+	}
+	return s1
+}
+
+// ToString ...
+func ToString(c color.Color) string {
+	hex := ToHex(c)
+	if name, ok := color2name[hex]; ok {
+		return name
+	}
+
+	return ToRGB(c)
 
 }

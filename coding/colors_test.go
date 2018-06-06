@@ -153,12 +153,33 @@ func TestColorToString(t *testing.T) {
 		{color.White, "rgb(255,255,255)"},
 		{color.Black, "rgb(0,0,0)"},
 		{color.RGBA{1, 2, 3, 255}, "rgb(1,2,3)"},
-		{color.RGBA{1, 2, 3, 128}, "rgba(1,2,3,128)"},
+		{color.NRGBA{1, 2, 3, 128}, "rgba(1,2,3,128)"},
 	}
 	for _, tc := range testCases {
-		actual := ColorToString(tc.input)
+		actual := ToRGB(tc.input)
 		if actual != tc.expected {
 			t.Errorf("Input %v: expected %q, found %q", tc.input, tc.expected, actual)
+		}
+	}
+}
+
+func TestToHex(t *testing.T) {
+
+	var testCases = []struct {
+		input    color.Color
+		expected string
+	}{
+		// functional syntax
+		{color.NRGBA{0x11, 0x22, 0x33, 0xff}, "#123"},
+		{color.NRGBA{0x11, 0x22, 0x33, 0x44}, "#1234"},
+		{color.NRGBA{0x11, 0x22, 0x33, 0xee}, "#123e"},
+		{color.NRGBA{0x12, 0x34, 0x56, 0xff}, "#123456"},
+		{color.NRGBA{0x12, 0x34, 0x56, 0x78}, "#12345678"},
+	}
+	for _, tc := range testCases {
+		actual := ToHex(tc.input)
+		if actual != tc.expected {
+			t.Errorf("Input %v: expected %v, found %v", tc.input, tc.expected, actual)
 		}
 	}
 }
