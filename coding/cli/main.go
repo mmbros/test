@@ -1,11 +1,9 @@
 package main
 
 import (
-	"image/color"
 	"log"
 
 	"github.com/mmbros/test/coding"
-	"golang.org/x/image/colornames"
 )
 
 func txt2png(pathTxt, pathPng string) error {
@@ -15,7 +13,7 @@ func txt2png(pathTxt, pathPng string) error {
 		return err
 	}
 	cod.Print()
-	z := 6
+	z := 16
 	img, err := coding.Zoom(cod.Image(), z, z)
 	if err != nil {
 		return err
@@ -24,9 +22,10 @@ func txt2png(pathTxt, pathPng string) error {
 	return err
 }
 
-func main2() {
+func main() {
 	//err := txt2png("doc/mistero.txt", "img/mistero.png")
-	err := txt2png("../examples/doc/pokemon.txt", "../examples/img/pok.png")
+	//err := txt2png("../examples/doc/pokemon.txt", "../examples/img/pok.png")
+	err := txt2png("../examples/doc/juve.txt", "../examples/img/juv.png")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,26 +50,33 @@ func mainPokemon() {
 
 }
 
-func main() {
-	img, err := coding.LoadImage("../examples/img/juventus-logo.jpg")
+func mainJUVE() {
+
+	sourceImage := "../examples/img/juve.jpg"
+	destText := "examples/doc/juve.txt"
+	destImage := "../examples/img/juve-2.png"
+
+	img, err := coding.LoadImage(sourceImage)
 	if err != nil {
 		log.Fatal(err)
 	}
-	pal := color.Palette{
-		color.White,
-		color.Black,
-		colornames.Yellow,
-	}
-	imgpal, _ := coding.PalettedImageExt2(img, 30, 30, 4, 4, pal)
+	/*
+		pal := color.Palette{
+			color.White,
+			color.Black,
+			colornames.Yellow,
+		}*/
+	imgpal, _ := coding.PalettedImageExt(img, 26, 43, 2, 2, 3)
+	//imgpal, _ := coding.PalettedImageExt2(img, 26, 43, 2, 2, pal)
 	cod := coding.NewFromPaletted(imgpal)
 	cod.Print()
-	cod.SaveAs("../examples/doc/juve.txt")
+	cod.SaveAs(destText)
 
 	z := 16
 	img, err = coding.Zoom(cod.Image(), z, z)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = coding.SaveAsPng(img, "../examples/img/juve2.png")
+	err = coding.SaveAsPng(img, destImage)
 
 }
