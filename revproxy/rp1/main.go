@@ -52,7 +52,8 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 func main() {
 	address := ":8082"
 
-	backendURL := "http://127.0.0.1:8081"
+	//backendURL := "http://127.0.0.1:8081"
+	backendURL := "http://192.168.1.2:8081"
 	//backendURL := "http://mananno.dlinkddns.com:9091"
 
 	// parse th backend URL\
