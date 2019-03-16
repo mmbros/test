@@ -21,7 +21,7 @@ func main() {
 	port := ":4443"
 	http.HandleFunc("/", HelloServer)
 	fmt.Printf("Listening on %s ...\n", port)
-	err := http.ListenAndServeTLS(port, "localhost.cert.pem", "localhost.key.pem", nil)
+	err := http.ListenAndServeTLS(port, "mananno.cert.pem", "mananno.key.pem", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
